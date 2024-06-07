@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
 import { styled } from "styled-components";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import Tweet from "./tweet";
+import { Unsubscribe } from "firebase/auth";
 
 export interface ITweet {
   id: string;
@@ -13,32 +21,55 @@ export interface ITweet {
   createdAt: number;
 }
 
-const Wrapper = styled.div``;
+const Wrapper = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+`;
 
 export default function Timeline() {
   const [tweets, setTweets] = useState<ITweet[]>([]);
-  const fetchTweets = async () => {
-    const tweetsQuery = query(
-      collection(db, "tweets"),
-      orderBy("createdAt", "desc")
-    );
-    const snapshot = await getDocs(tweetsQuery);
-    const fetchedTweets = snapshot.docs.map((doc) => {
-      const { tweet, createdAt, userId, username, photo } = doc.data();
-      return {
-        tweet,
-        createdAt,
-        userId,
-        username,
-        photo,
-        id: doc.id,
-      };
-    });
-    setTweets(fetchedTweets);
-    // snapshot.docs.forEach((doc) => console.log(doc.data()));
-  };
+
   useEffect(() => {
+    let unsubscribe: Unsubscribe | null = null;
+    const fetchTweets = async () => {
+      const tweetsQuery = query(
+        collection(db, "tweets"),
+        orderBy("createdAt", "desc"),
+        limit(25)
+      );
+      // const snapshot = await getDocs(tweetsQuery);
+      // const fetchedTweets = snapshot.docs.map((doc) => {
+      //   const { tweet, createdAt, userId, username, photo } = doc.data();
+      //   return {
+      //     tweet,
+      //     createdAt,
+      //     userId,
+      //     username,
+      //     photo,
+      //     id: doc.id,
+      //   };
+      // });
+
+      unsubscribe = await onSnapshot(tweetsQuery, (snapshot) => {
+        const fetchedTweets = snapshot.docs.map((doc) => {
+          const { tweet, createdAt, userId, username, photo } = doc.data();
+          return {
+            tweet,
+            createdAt,
+            userId,
+            username,
+            photo,
+            id: doc.id,
+          };
+        });
+        setTweets(fetchedTweets);
+      });
+    };
     fetchTweets();
+    return () => {
+      unsubscribe && unsubscribe();
+    };
   }, []);
   return (
     <Wrapper>
