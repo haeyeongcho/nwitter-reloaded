@@ -1,3 +1,4 @@
+// 리액트와 관련 패키지 임포트
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Layout from "./components/layout";
 import Home from "./routes/home";
@@ -11,6 +12,7 @@ import LoadingScreen from "./components/loading-screen";
 import { auth } from "./firebase";
 import ProtectedRoute from "./components/protected-route";
 
+// 라우터 설정
 const router = createBrowserRouter([
   {
     path: "/",
@@ -40,6 +42,7 @@ const router = createBrowserRouter([
   },
 ]);
 
+// 전역 스타일 설정
 const GlobalStyles = createGlobalStyle`
   ${reset}
   *{
@@ -52,19 +55,19 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
+// Wrapper 스타일 컴포넌트
 const Wrapper = styled.div`
   height: 100vh;
   display: flex;
   justify-content: center;
 `;
 
+// App 컴포넌트
 function App() {
   const [isLoading, setLoading] = useState(true);
   const init = async () => {
-    // wait for firebase
+    // Firebase 인증 상태 확인
     await auth.authStateReady();
-
-    // setTimeout(() => setIsLoading(false), 2000);
     setLoading(false);
   };
   useEffect(() => {
